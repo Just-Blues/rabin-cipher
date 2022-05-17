@@ -32,7 +32,7 @@ def decryption(ciphered_msg, p, q):
     x = (r * d * q + s * c * p) % n
     y = (r * d * q - s * c * p) % n
     lst = [x, n - x, y, n - y]
-    #print(lst)
+    print(lst)
 
     i = 0
     aux = 0
@@ -41,7 +41,55 @@ def decryption(ciphered_msg, p, q):
     while i < 4:
         aux = lst[i]**2 % (n*p) #n = p^2 * q ?????
         if aux == ciphered_msg:
-            #print(i,aux, "==", ciphered_msg)
+            print(i,aux, "==", ciphered_msg)
+            plaintext = lst[i]
+        i += 1
+    
+    #plaintext = lst[i]
+    #print(plaintext)
+
+    return plaintext
+
+
+def decryption_cbc_verification(ciphered_msg, p, q, previous):
+    n = p * q
+    r, s = 0, 0
+    # find sqrt
+    # for p
+    if p % 4 == 3:
+        r = auxilliary.sqrt_p_3_mod_4(ciphered_msg, p)
+        #print("P mod 4, r= ", r)
+    elif p % 8 == 5:
+        r = auxilliary.sqrt_p_5_mod_8(ciphered_msg, p)
+        #print("P mod 8, r= ", r)
+    # for q
+    if q % 4 == 3:
+        s = auxilliary.sqrt_p_3_mod_4(ciphered_msg, q)
+        #print("Q mod 4, s= ", s)
+    elif q % 8 == 5:
+        s = auxilliary.sqrt_p_5_mod_8(ciphered_msg, q)
+        #print("Q mod 8, s= ", s)
+
+    gcd, c, d = auxilliary.egcd(p, q)
+    #print(gcd, c, d)
+    x = (r * d * q + s * c * p) % n
+    y = (r * d * q - s * c * p) % n
+    lst = [x, n - x, y, n - y]
+    #lst[0] = lst[0] ^ previous
+    #lst[1] = lst[1] ^ previous
+    #lst[2] = lst[2] ^ previous
+    #lst[3] = lst[3] ^ previous
+    print(lst)
+
+    i = 0
+    aux = 0
+    plaintext = 0
+    #Find the correct answer from lst
+    while i < 4:
+        aux = lst[i]**2 % (n*p) #n = p^2 * q ?????
+        #aux = aux ^ previous
+        if aux == ciphered_msg^previous:
+            print(i,aux, "==", ciphered_msg)
             plaintext = lst[i]
         i += 1
     
@@ -153,11 +201,11 @@ test3 = encryption(int_text[2]^test2,key3)
 #test3 = test3 ^ test2
 print(test1, test2, test3)
 
-test4 = decryption(test1,11362979, 11363239)
+test4 = decryption_cbc_verification(test1,11362979, 11363239, IV)
 #test4 = test4 ^ 2343827943983
-test5 = decryption(test2,11362979, 11363239) 
+test5 = decryption_cbc_verification(test2,11362979, 11363239, test1) 
 #test5 = test5 ^ test1
-test6 = decryption(test3,11362979, 11363239) 
+test6 = decryption_cbc_verification(test3,11362979, 11363239, test2) 
 #test6 = test6 ^ test2
 
 print(test4, test5, test6)
