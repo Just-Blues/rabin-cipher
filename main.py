@@ -95,14 +95,20 @@ def decryption_cbc_verification(ciphered_msg, p, q, previous):
     lst = [x, n - x, y, n - y]
     print(lst)
 
+    #lst[0] = lst[0] ^ previous
+    #lst[1] = lst[1] ^ previous
+    #lst[2] = lst[2] ^ previous
+    #lst[3] = lst[3] ^ previous
+    #print(lst)
+
     i = 0
     aux = 0
     plaintext = 0
     #Find the correct answer from lst
     while i < 4:
         aux = lst[i]**2 % (n*p) #n = p^2 * q ?????
-        print(aux)
         #aux = aux ^ previous
+        print(aux)
         if aux == ciphered_msg:
             print(i,aux, "==", ciphered_msg)
             plaintext = lst[i]
@@ -197,7 +203,7 @@ print(int_text)
 #key3 = 11362979 * 11363239 * 11362979 #not so big
 
 way_bigger_key = 40000000141 * 40000001051 * 40000000141 #any key has to be bigger than this one
-
+#print(way_bigger_key) #64000002132800012650520020894931
 #enc_test = ebc_encryption(int_text,way_bigger_key) #43869243335189 = 32779^2 * 40829, 1338333791 = 32779 * 40829
 #print(enc_test)
 
@@ -210,8 +216,11 @@ way_bigger_key = 40000000141 * 40000001051 * 40000000141 #any key has to be bigg
 IV = 13679879725014003723223762833598
 
 test1 = encryption(int_text[0]^ IV, way_bigger_key)
+print(int_text[0]^ IV)
 test2 = encryption(int_text[1]^ test1, way_bigger_key)
+print(int_text[1]^ test1)
 test3 = encryption(int_text[2]^ test2, way_bigger_key)
+print(int_text[2]^ test2)
 
 #test1 = encryption(int_text[0], way_bigger_key)
 #test2 = encryption(int_text[1], way_bigger_key)
