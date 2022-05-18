@@ -1,4 +1,3 @@
-# Rabin.py
 import auxilliary
 
 
