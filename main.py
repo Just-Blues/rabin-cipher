@@ -1,4 +1,3 @@
-# Rabin.py
 import auxilliary
 
 # Find SQROOT in Zp where p = 3 mod 4
