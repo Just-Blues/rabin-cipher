@@ -1,6 +1,5 @@
 import auxilliary
 
-
 # Find SQROOT in Zp where p = 3 mod 4
 def sqrt_p_3_mod_4(a, p):
     r = pow(a, (p + 1) // 4, p)
@@ -23,7 +22,6 @@ def encryption(plaintext, n):
     cipher = plaintext ** 2 % n
     return cipher
 
-
 # decryption function
 def decryption(ciphered_msg, p, q):
     n = p * q
@@ -33,16 +31,14 @@ def decryption(ciphered_msg, p, q):
     if p % 4 == 3:
         r = sqrt_p_3_mod_4(ciphered_msg, p)
         #print("P mod 4, r= ", r)
-    elif p % 8 == 5:
-        r = sqrt_p_5_mod_8(ciphered_msg, p)
-        #print("P mod 8, r= ", r)
+    else:
+        print("p mod 4 != 3")
     # for q
     if q % 4 == 3:
         s = sqrt_p_3_mod_4(ciphered_msg, q)
         #print("Q mod 4, s= ", s)
-    elif q % 8 == 5:
-        s = sqrt_p_5_mod_8(ciphered_msg, q)
-        #print("Q mod 8, s= ", s)
+    else:
+        print("q mod 4 != 3")
 
     gcd, c, d = auxilliary.egcd(p, q)
     #print(gcd, c, d)
@@ -58,7 +54,7 @@ def decryption(ciphered_msg, p, q):
     while i < 4:
         aux = lst[i]**2 % (n*p) #n = p^2 * q ?????
         if aux == ciphered_msg:
-            print(i,aux, "==", ciphered_msg)
+            #print(i,aux, "==", ciphered_msg)
             plaintext = lst[i]
         i += 1
     
@@ -66,6 +62,53 @@ def decryption(ciphered_msg, p, q):
     #print(plaintext)
 
     return plaintext
+
+#Changes string to 64-bits blocks (depends on radix)
+def str_to_int(plaintext):
+    result = []
+    a = 0
+    j = len(plaintext)
+    #Padding
+    if j % 4 != 0:
+        plaintext += "\0"*(4 - j%4)
+
+    for i in range(0, j):
+        #size of each block is 32/64 bits 
+        if i % 4 == 0: 
+            a = ord(plaintext[i]) + ord(plaintext[i+1]) * 65536 + ord(plaintext[i+2])* 65536**2 + ord(plaintext[i+3])* 65536**3
+            result.append(a)
+
+    return result
+
+#Translates 64-bit integares into string of 4 chars
+def int_to_str(number):
+    plaintext = ""
+    for i in range(0, len(number)):
+        #binary_str = bin(number[i])
+        while number[i] != 0:
+            a = int(number[i] % 65536)
+            plaintext += chr(a)
+            number[i] = (number[i] - a) / 65536
+
+    return plaintext
+
+def ebc_encryption(plaintext, n):
+    int_plaintext = str_to_int(plaintext)
+    encrypted = []
+    for i in range(0,len(int_plaintext)):
+        encrypted.append(encryption(int_plaintext[i],n))    
+
+    return encrypted
+
+def ebc_decryption(ciphered_msg, p, q):
+    decrypted = []
+    for i in range(0, len(ciphered_msg)):
+        #print("Iteration: ", i)
+        decrypted.append(decryption(ciphered_msg[i], p, q))
+    
+    str_decrypted = int_to_str(decrypted)
+    
+    return str_decrypted
 
 
 def decryption_cbc_verification(ciphered_msg, p, q, previous):
@@ -76,16 +119,14 @@ def decryption_cbc_verification(ciphered_msg, p, q, previous):
     if p % 4 == 3:
         r = sqrt_p_3_mod_4(ciphered_msg, p)
         #print("P mod 4, r= ", r)
-    elif p % 8 == 5:
-        r = sqrt_p_5_mod_8(ciphered_msg, p)
-        #print("P mod 8, r= ", r)
+    else:
+        print("p mod 4 != 3")
     # for q
     if q % 4 == 3:
         s = sqrt_p_3_mod_4(ciphered_msg, q)
         #print("Q mod 4, s= ", s)
-    elif q % 8 == 5:
-        s = sqrt_p_5_mod_8(ciphered_msg, q)
-        #print("Q mod 8, s= ", s)
+    else:
+        print("q mod 4 != 3")
 
     gcd, c, d = auxilliary.egcd(p, q)
     #print(gcd, c, d)
@@ -107,147 +148,96 @@ def decryption_cbc_verification(ciphered_msg, p, q, previous):
     while i < 4:
         aux = lst[i]**2 % (n*p) #n = p^2 * q ?????
         #aux = aux ^ previous
-        print(aux)
+        #print(aux)
         if aux == ciphered_msg:
-            print(i,aux, "==", ciphered_msg)
+            print("FOUND!",i,)#aux, "==", ciphered_msg)
             plaintext = lst[i]
         i += 1
     
     #plaintext = lst[i]
     #print(plaintext)
 
-    return plaintext
+    return plaintext^previous
 
-
-#Changes string to 32/64-bits blocks (depends on radix)
-def str_to_int(plaintext,radix):
-    result = []
-    a = 0
-    j = len(plaintext)
-    #Padding
-    if j % 4 != 0:
-        plaintext += "\0"*(4 - j%4)
-
-    for i in range(0, j):
-        #size of each block is 32/64 bits 
-        if i % 4 == 0: 
-            a = ord(plaintext[i]) + ord(plaintext[i+1]) * radix + ord(plaintext[i+2])* radix**2 + ord(plaintext[i+3])* radix**3
-            result.append(a)
-
-    return result
-
-#Translates 32/64 bit integares into string of 4 chars
-def int_to_str(number,radix):
-    plaintext = ""
-    for i in range(0, len(number)):
-        #binary_str = bin(number[i])
-        while number[i] != 0:
-            a = int(number[i] % radix)
-            plaintext += chr(a)
-            number[i] = (number[i] - a) / radix
-
-    return plaintext
-
-
-def ebc_encryption(plaintext, n):
-    encrypted = []
-    for i in range(0,len(plaintext)):
-        encrypted.append(encryption(plaintext[i],n))    
-
-    return encrypted
-
-def ebc_decryption(ciphered_msg, p, q):
-    decrypted = []
-    for i in range(0, len(ciphered_msg)):
-        #print("Iteration: ", i)
-        decrypted.append(decryption(ciphered_msg[i], p, q))
-
-    return decrypted
-
-#Initializing_vector will be 32/64-bits, all vectors after the first will have to be padded or extended (that was the plan, now I don't know)
-def cbc_encryption(plaintext, n ,initializing_vector):
-    encrypted = []
-    for i in range(0, len(plaintext)):
-        if i == 0:
-            aux = plaintext[0] ^ initializing_vector
-        else:
-            aux = plaintext[i] ^ encrypted[i-1]  
-        encrypted.append(encryption(aux,n))
-
-    return encrypted
-
-def cbc_decryption(ciphered_msg, p, q, initializing_vector):
-    decrypted = []
-    for i in range(0, len(ciphered_msg)):
-        if i == 0:
-            aux = decryption(ciphered_msg[0],p,q) ^ initializing_vector
-        else:
-            aux = decryption(ciphered_msg[i],p,q) ^ ciphered_msg[i-1]
-
-        decrypted.append(aux)
-
-    return decrypted
-
-text = "random string, test"
-radix = 256*256 #for bigger radix we need enormous key
-int_text = str_to_int(text, radix)
-print(int_text)
 
 #Some enormous keys are required for the decryption to work properly
-#key = 50539 * 50543 * 50539
-#key2 = 118249 * 118633
-#large_key = 1000081 * 1000193 * 1000081
-#129096451502903 = p^2 * q -> because if it's only p*q, the verification mechanism doesn't work, hence why we use p^2 * q
-#doesn't change much, becuase the key has to be factorized anyway and one of the factors is a prime number anyway
-#key3 = 11362979 * 11363239 * 11362979 #not so big
+#p^2 * q -> because if it's only p*q, the verification mechanism doesn't work, hence why we use p^2 * q
+#doesn't change much, becuase if the cipher were to deciphered the key would have to be factorized anyway
 
-way_bigger_key = 40000000141 * 40000001051 * 40000000141 #any key has to be bigger than this one
-#print(way_bigger_key) #64000002132800012650520020894931
-#enc_test = ebc_encryption(int_text,way_bigger_key) #43869243335189 = 32779^2 * 40829, 1338333791 = 32779 * 40829
-#print(enc_test)
+text = "random string, test|EjLmQ6yxCJ, V4nA4RUJxe ą 52G8AiCnv2 osSq4PGlJi  DAoMc7bIj3 BjYV0ewIf1sadxz///522u30LrCk ę "
+print("Input text: \n", text)
 
-#dec_test = ebc_decryption(enc_test,40000000141, 40000001051) #p has to be smaller than q, otherwise it won't work for some reason
-#print(dec_test)
+p = auxilliary.generate_a_prime_number(128)#Number of bits should be larger than 
+q = auxilliary.generate_a_prime_number(128)
 
-#end_text = int_to_str(dec_test, radix)
-#print(end_text)
+print(p)
+print(q)
 
-IV = 13679879725014003723223762833598
+if p < q:
+    key = p*p*q
+    enc_test = ebc_encryption(text,key)
+    #print(enc_test)
+    dec_test = ebc_decryption(enc_test, p, q) #p has to be smaller than q, otherwise it won't work for some reason
+    print("Output text: \n",dec_test)
+    #print(dec_test)
 
-test1 = encryption(int_text[0]^ IV, way_bigger_key)
-print(int_text[0]^ IV)
-test2 = encryption(int_text[1]^ test1, way_bigger_key)
-print(int_text[1]^ test1)
-test3 = encryption(int_text[2]^ test2, way_bigger_key)
-print(int_text[2]^ test2)
+elif q < p:
+    key = q*q*p
+    enc_test = ebc_encryption(text,key)
+    #print(enc_test)
+    dec_test = ebc_decryption(enc_test, q, p) #q has to be smaller than p, otherwise it won't work for some reason
+    print("Output text: \n",dec_test)
+    #print(dec_test)
 
-#test1 = encryption(int_text[0], way_bigger_key)
-#test2 = encryption(int_text[1], way_bigger_key)
-#test3 = encryption(int_text[2], way_bigger_key)
+test_q = 233093918968145269108643411455736859031
+test_p = 84290171097984117276849441212192689283
+IV = auxilliary.generate_a_prime_number(32)
+print(IV)
 
-#test1 = test1 ^ IV
-#test2 = test2 ^ test1
-#test3 = test3 ^ test2
-print(test1, test2, test3)
+test_key = test_p * test_p * test_q
+test_int = str_to_int(text)
+print("Original text: ", test_int)
+print("Ciphers:")
+test1 = encryption(test_int[0]^ IV, test_key)
+#print(test_int[0]^ IV)
+test2 = encryption(test_int[1]^ test1, test_key)
+#print(test_int[1]^ test1)
+test3 = encryption(test_int[2]^ test2, test_key)
+test4 = encryption(test_int[3]^ test3, test_key)
+test5 = encryption(test_int[4]^ test4, test_key)
+#print(test_int[2]^ test2)
 
-test4 = decryption_cbc_verification(test1,40000000141, 40000001051, IV)
+print(test1, test2, test3, test4, test5, "\n\n")
+
+output = []
+output.append(decryption_cbc_verification(test1,test_p, test_q, IV))
 #test4 = test4 ^ 2343827943983
-test5 = decryption_cbc_verification(test2,40000000141, 40000001051, test1) 
+output.append(decryption_cbc_verification(test2,test_p, test_q, test1))
 #test5 = test5 ^ test1
-test6 = decryption_cbc_verification(test3,40000000141, 40000001051, test2) 
+output.append(decryption_cbc_verification(test3,test_p, test_q, test2)) 
+output.append(decryption_cbc_verification(test4,test_p, test_q, test3)) 
+output.append(decryption_cbc_verification(test4,test_p, test_q, test4)) 
+print("Decrypted: \n", output)
 #test6 = test6 ^ test2
+#text_out = int_to_str(output)
+#print(text_out)
 
-print(test4, test5, test6)
+'''
+#Proper test below
+with open('test.txt','r') as f:
+    line = f.readline()
+    with open('output.txt','w') as h:
 
-#cenc_test = cbc_encryption(int_text,key,IV)
-#print(cenc_test)
+        while line:
+            if p < q:
+                enc = ebc_encryption(line, key)
+                dec = ebc_decryption(enc, p,q)
+            elif q < p:
+                enc = ebc_encryption(line, key)
+                dec = ebc_decryption(enc, q,p)
+            line = f.readline()
+            h.write(dec)
+            #print(line)
 
-#cdec_test = cbc_decryption(cenc_test,50539, 50543, IV)
-#print(cdec_test)
 
-
-#[1868853104, 543518326, 1864396644, 1685680994, 1970168169, 4479008]
-#[36525370897054, 39489659200212, 52889442799461, 107515953933006, 19606803028060, 20061512664064]
-
-
-#[36525370897054, 69297185668918, 2045933516730, 127811932270049, 42800105976976, 92633153595235]
+'''
