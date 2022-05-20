@@ -133,7 +133,8 @@ def decryption_cbc_verification(ciphered_msg, p, q, previous):
     x = (r * d * q + s * c * p) % n
     y = (r * d * q - s * c * p) % n
     lst = [x, n - x, y, n - y]
-    print(lst)
+    #print(lst)
+    print("Bit lenght of lst: ", lst[0].bit_length(), lst[1].bit_length(), lst[2].bit_length(),lst[3].bit_length())
 
     #lst[0] = lst[0] ^ previous
     #lst[1] = lst[1] ^ previous
@@ -164,63 +165,79 @@ def decryption_cbc_verification(ciphered_msg, p, q, previous):
 #p^2 * q -> because if it's only p*q, the verification mechanism doesn't work, hence why we use p^2 * q
 #doesn't change much, becuase if the cipher were to deciphered the key would have to be factorized anyway
 
-text = "random string, test|EjLmQ6yxCJ, V4nA4RUJxe ą 52G8AiCnv2 osSq4PGlJi  DAoMc7bIj3 BjYV0ewIf1sadxz///522u30LrCk ę "
+text = "ź{}random string, test|EjLmQ6yxCJ, V4nA4RUJxe ą 52G8AiCnv2 osSq4PGlJi  DAoMc7bIj3 BjYV0ewIf1sadxz///522u30LrCk ę "
 print("Input text: \n", text)
 
-p = auxilliary.generate_a_prime_number(128)#Number of bits should be larger than 
-q = auxilliary.generate_a_prime_number(128)
+p = auxilliary.generate_a_prime_number(32)
+q = auxilliary.generate_a_prime_number(32)
 
 print(p)
 print(q)
 
 if p < q:
     key = p*p*q
+    #print(key.bit_length())
     enc_test = ebc_encryption(text,key)
     #print(enc_test)
+    #print("Original text: ", enc_test[0].bit_length(), enc_test[1].bit_length(),enc_test[3].bit_length(),enc_test[5].bit_length(),enc_test[2].bit_length(),enc_test[9].bit_length())
     dec_test = ebc_decryption(enc_test, p, q) #p has to be smaller than q, otherwise it won't work for some reason
     print("Output text: \n",dec_test)
     #print(dec_test)
 
 elif q < p:
     key = q*q*p
+    #print(key.bit_length())
     enc_test = ebc_encryption(text,key)
     #print(enc_test)
+    #print("Original text: ", enc_test[0].bit_length(), enc_test[1].bit_length(),enc_test[3].bit_length(),enc_test[5].bit_length(),enc_test[2].bit_length(),enc_test[9].bit_length())
     dec_test = ebc_decryption(enc_test, q, p) #q has to be smaller than p, otherwise it won't work for some reason
     print("Output text: \n",dec_test)
     #print(dec_test)
 
-test_q = 233093918968145269108643411455736859031
-test_p = 84290171097984117276849441212192689283
-IV = auxilliary.generate_a_prime_number(32)
-print(IV)
+#test_int = str_to_int(text)
+#print(test_int)
+
+
+test_q = 4101667043
+test_p = 3281508959
+IV = auxilliary.generate_a_prime_number(55)
+#print(IV)
 
 test_key = test_p * test_p * test_q
+print("Key lenght = ", test_key.bit_length())
 test_int = str_to_int(text)
-print("Original text: ", test_int)
-print("Ciphers:")
-test1 = encryption(test_int[0]^ IV, test_key)
-#print(test_int[0]^ IV)
-test2 = encryption(test_int[1]^ test1, test_key)
-#print(test_int[1]^ test1)
-test3 = encryption(test_int[2]^ test2, test_key)
-test4 = encryption(test_int[3]^ test3, test_key)
-test5 = encryption(test_int[4]^ test4, test_key)
-#print(test_int[2]^ test2)
+print(test_int)
+cipher = []
+print("Original text: ", test_int[0].bit_length(), test_int[1].bit_length(),test_int[2].bit_length(),test_int[3].bit_length(),test_int[4].bit_length(),test_int[5].bit_length())
+cipher.append(encryption(test_int[0]^ IV, test_key))
+cipher.append(encryption(test_int[1]^ cipher[0], test_key))
+cipher.append(encryption(test_int[2]^ cipher[1], test_key))
+cipher.append(encryption(test_int[3]^ cipher[2], test_key))
+cipher.append(encryption(test_int[4]^ cipher[3], test_key))
+cipher.append(encryption(test_int[5]^ cipher[4], test_key))
 
-print(test1, test2, test3, test4, test5, "\n\n")
+print("Ciphers: \n",cipher[0].bit_length(), cipher[1].bit_length(), cipher[2].bit_length(), cipher[3].bit_length(),cipher[4].bit_length(), cipher[5].bit_length(),"\n\n")
+print("Cipher in binary: ", bin(cipher[0]))
+print(bin(cipher[1]))
+print(bin(cipher[2]))
+print(bin(cipher[3]))
+print(bin(cipher[4]))
+print(bin(cipher[5]))
 
 output = []
-output.append(decryption_cbc_verification(test1,test_p, test_q, IV))
-#test4 = test4 ^ 2343827943983
-output.append(decryption_cbc_verification(test2,test_p, test_q, test1))
-#test5 = test5 ^ test1
-output.append(decryption_cbc_verification(test3,test_p, test_q, test2)) 
-output.append(decryption_cbc_verification(test4,test_p, test_q, test3)) 
-output.append(decryption_cbc_verification(test4,test_p, test_q, test4)) 
-print("Decrypted: \n", output)
-#test6 = test6 ^ test2
-#text_out = int_to_str(output)
-#print(text_out)
+output.append(decryption_cbc_verification(cipher[0],test_p, test_q, IV))
+output.append(decryption_cbc_verification(cipher[1],test_p, test_q, cipher[0]))
+output.append(decryption_cbc_verification(cipher[2],test_p, test_q, cipher[1])) 
+output.append(decryption_cbc_verification(cipher[3],test_p, test_q, cipher[2])) 
+output.append(decryption_cbc_verification(cipher[4],test_p, test_q, cipher[3])) 
+output.append(decryption_cbc_verification(cipher[5],test_p, test_q, cipher[4])) 
+print("Decrypted: \n", output[0].bit_length(), output[1].bit_length(), output[2].bit_length(), output[3].bit_length(),output[4].bit_length(), output[5].bit_length(),"\n\n")
+print("Decrypted in binary: ", bin(output[0]))
+print(bin(output[1]))
+print(bin(output[2]))
+print(bin(output[3]))
+print(bin(output[4]))
+print(bin(output[5]))
 
 '''
 #Proper test below
@@ -239,5 +256,32 @@ with open('test.txt','r') as f:
             h.write(dec)
             #print(line)
 
+
+'''
+
+'''
+#Initializing_vector will be 32/64-bits, all vectors after the first will have to be padded or extended (that was the plan, now I don't know)
+def cbc_encryption(plaintext, n ,initializing_vector):
+    encrypted = []
+    for i in range(0, len(plaintext)):
+        if i == 0:
+            aux = plaintext[0] ^ initializing_vector
+        else:
+            aux = plaintext[i] ^ encrypted[i-1]  
+        encrypted.append(encryption(aux,n))
+
+    return encrypted
+
+def cbc_decryption(ciphered_msg, p, q, initializing_vector):
+    decrypted = []
+    for i in range(0, len(ciphered_msg)):
+        if i == 0:
+            aux = decryption(ciphered_msg[0],p,q) ^ initializing_vector
+        else:
+            aux = decryption(ciphered_msg[i],p,q) ^ ciphered_msg[i-1]
+
+        decrypted.append(aux)
+
+    return decrypted
 
 '''
