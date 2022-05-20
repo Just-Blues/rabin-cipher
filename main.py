@@ -31,16 +31,14 @@ def decryption(ciphered_msg, p, q):
     if p % 4 == 3:
         r = sqrt_p_3_mod_4(ciphered_msg, p)
         #print("P mod 4, r= ", r)
-    elif p % 8 == 5:
-        r = sqrt_p_5_mod_8(ciphered_msg, p)
-        #print("P mod 8, r= ", r)
+    else:
+        print("p mod 4 != 3")
     # for q
     if q % 4 == 3:
         s = sqrt_p_3_mod_4(ciphered_msg, q)
         #print("Q mod 4, s= ", s)
-    elif q % 8 == 5:
-        s = sqrt_p_5_mod_8(ciphered_msg, q)
-        #print("Q mod 8, s= ", s)
+    else:
+        print("q mod 4 != 3")
 
     gcd, c, d = auxilliary.egcd(p, q)
     #print(gcd, c, d)
@@ -148,17 +146,14 @@ with open('test.txt','r') as f:
     with open('output.txt','w') as h:
 
         while line:
-            line = f.readline()
             if p < q:
                 enc = ebc_encryption(line, key)
                 dec = ebc_decryption(enc, p,q)
             elif q < p:
                 enc = ebc_encryption(line, key)
                 dec = ebc_decryption(enc, q,p)
-
+            line = f.readline()
             h.write(dec)
             #print(line)
-
-
 
 
