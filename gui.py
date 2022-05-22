@@ -1,11 +1,13 @@
 import re
 from sys import getsizeof
 
+import numpy as np
+import numpy.ma
 from PyInquirer import prompt
 from prompt_toolkit.validation import Validator, ValidationError
 
-from ebc import run_ebc
-from main import str_to_int
+from ebc import encrypt, decrypt
+from run_test import run_test
 
 
 def isprime(num):
@@ -26,7 +28,7 @@ class PrimeValidator(Validator):
             )
 
 
-class InitializationVector(Validator):
+class InitializationVectorValidator(Validator):
     def validate(self, document):
         ok = re.match('^\\d+$', str(document.text))
         isAtLeast32Bit = getsizeof(int(document.text)) < 32 if ok else False
@@ -36,21 +38,41 @@ class InitializationVector(Validator):
                 cursor_position=len(document.text)
             )
 
+class CipherTextBlockArrayValidator(Validator):
+    def validate(self, document):
 
-  #TODO
-# class MessageValidator(Validator):
-#     def validate(self, document):
-#         message_to_int_blocks = str_to_int(document.text)
-#         for m
+        ok = True
+
+        arr = [int(x) for x in document.text.strip().split(',')]
+        if not isinstance(arr, list):
+            ok = False
+
+        for item in arr:
+            if type(item) != int:
+                ok = False
+
+        if not ok:
+            raise ValidationError(
+                message='You need to provide only encrypted blocks of numbers separated by comma',
+                cursor_position=len(document.text)
+            )
+
+
 
 def get_input_params():
     answers = prompt([
+        {
+            'type': 'list',
+            'name': 'app_mode',
+            'message': 'Choose preferred action',
+            'choices': ['Encryption', 'Decryption', 'All', 'Tests']
+        },
         {
             'type': 'input',
             'name': 'input_plaintext',
             'default': 'I want to break free',
             'message': 'Please enter the plaintext to be encrypted',
-            'validate': lambda answer: len(answer) > 0 or 'Plaintext must not be blank'
+            'validate': lambda answer: len(answer) > 0 or 'Plaintext must not be blank',
         },
         {
             'type': 'input',
@@ -69,14 +91,38 @@ def get_input_params():
 
     ])
 
-    return answers['input_plaintext'], int(answers['p']), int(answers['q'])
+    return answers['app_mode'], answers['input_plaintext'], int(answers['p']), int(answers['q'])
 
 
 def gui():
-    plaintext, p, q = get_input_params()
+    app_mode, plaintext, p, q = get_input_params()
 
-    run_ebc(p, q, plaintext)
+    if p == q:
+        raise Exception("p and q cannot be the same")
 
+    if app_mode == "Encryption":
+
+        encrypt(p, q, plaintext)
+
+    elif app_mode == "All":
+
+        cipher_text = encrypt(p, q, plaintext)
+        encrypted_msg = decrypt(p, q, cipher_text)
+
+    elif app_mode == "Decryption":
+        answers = prompt({
+            'type': 'input',
+            'name': 'cipher_text',
+            'message': 'Please enter the ciphertext as array of encrypted blocks. Example: 1, 3, 5, 7, 11 ...',
+            'default': '41485667273132496669513841680320, 42103096247763058700214192038420, 5676178460851462154952244454129, 17137915331541212580406997050118, 40231125331961273935714897292992',
+            'validate': CipherTextBlockArrayValidator
+        })
+
+        arr = [int(x) for x in answers['cipher_text'].strip().split(',')]
+        decrypt(p, q, arr)
+
+    elif app_mode == "Tests":
+        run_test(p, q)
 
 
 gui()

@@ -128,6 +128,7 @@ q = auxilliary.generate_a_prime_number(128)
 if p < q:
     key = p*p*q
     enc_test = ebc_encryption(text,key)
+    print(enc_test)
     #print(enc_test)
     dec_test = ebc_decryption(enc_test, p, q) #p has to be smaller than q, otherwise it won't work for some reason
     print("Output text: \n",dec_test)
@@ -140,25 +141,4 @@ elif q < p:
     dec_test = ebc_decryption(enc_test, q, p) #q has to be smaller than p, otherwise it won't work for some reason
     print("Output text: \n",dec_test)
     #print(dec_test)
-
-
-#Proper test below
-with open('test.txt','r') as f:
-    line = f.readline()
-    with open('output.txt','w') as h:
-
-        while line:
-            line = f.readline()
-            if p < q:
-                enc = ebc_encryption(line, key)
-                dec = ebc_decryption(enc, p,q)
-            elif q < p:
-                enc = ebc_encryption(line, key)
-                dec = ebc_decryption(enc, q,p)
-
-            h.write(dec)
-            #print(line)
-
-
-
 
