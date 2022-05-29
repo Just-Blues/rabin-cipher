@@ -45,7 +45,10 @@ def generate_a_prime_number(num_of_bits):
         
         num = random.getrandbits(num_of_bits)
         if isPrime(num):
-            return num
+            if num % 4 == 3:
+                return num
+            else:
+                continue    
         else:
             continue
 
@@ -66,3 +69,6 @@ def none_in_x_is_n(x, n):
         if i == n:
             return False
     return True
+
+
+
