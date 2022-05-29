@@ -128,11 +128,12 @@ def cbc_decryption(ciphered_msg, p, q, initializing_vector):
     str_decrypted = int_to_str(decrypted)
     return str_decrypted
 
+print("Small test with hardcoded string")
 
 text = "ź{}random string, test|EjLmQ6yxCJ, V4nA4RUJxe ą 52G8AiCnv2 osSq4PGlJi  DAoMc7bIj3 BjYV0ewIf1sadxz///522u30LrCk ę "
 print("Input text:")
 print(text)
-
+print("Generating p, q and IV using Miller-Rabin Primality Testing")
 p = auxilliary.generate_a_prime_number(64)
 q = auxilliary.generate_a_prime_number(64)
 IV = auxilliary.generate_a_prime_number(64)
@@ -168,7 +169,6 @@ elif q < p:
     cbc_dec = cbc_decryption(cbc_enc, q,p,IV)
     print("CBC Output text:")
     print(cbc_dec)
-
 
 
 #EBC test
